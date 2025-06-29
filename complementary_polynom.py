@@ -238,8 +238,38 @@ def main():
     second_derivative_coeffs = [12 * coeffs_1[0], 6 * coeffs_1[1], 2 * coeffs_1[2]]
 
     # play_with_coeffs(coeffs_1)
-    fix_and_search_coeffs(coeffs_1)
+    # fix_and_search_coeffs(coeffs_1)
 
+    # one extremum condition
+    # Q = 0 (p = q = 0) in Cardano's formula
+    # fix a, from one extremum condition get expressions for b and c
+    # from 'same extremum' condition get qubic equation and find d
+    coeffs_full = [deepcopy(coeffs_1)]
+
+    extremums = sorted(get_extremums(coeffs_1))
+    x = max(extremums)
+    print("x:", x)
+
+    a = coeffs_1[0]
+
+    c3 = 1
+    c2 = 2 * x * pow(27 * a, 1/3)
+    c1 = 3 * pow(x, 2) * np.emath.sqrt(3 * a) * pow(27 * a, 1/6)
+    c0 = 4 * a * pow(x, 3)
+    t = qubic_equation_roots([c3, c2, c1, c0])
+    print("t:", t)
+
+    ds = [pow(i, 1/3) for i in t]
+    print("ds:", ds)
+
+    for d in ds:
+        c = pow(27 * a * d * d, 1/3)
+        b = np.emath.sqrt(3 * a * c)
+        coeffs_full.append(deepcopy([a, b, c, d]))
+
+    print_custom("coeffs_full:", coeffs_full)
+
+    build_graph_group(coeffs_full, 0.1, 5)
 
     # convex condition
     # zeros = quadratic_equation_roots()
