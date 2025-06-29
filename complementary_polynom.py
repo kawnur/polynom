@@ -3,8 +3,22 @@ from math import sqrt
 import matplotlib.pyplot as plt
 import numpy as np
 
+# DEBUG = False
+DEBUG = True
 
 DELIMITER = '#' * 180
+
+
+def get_var_name(var):
+    for name, value in locals().items():
+        if value is var:
+            return name
+
+
+def print_custom(*args):
+    if DEBUG:
+        # print(f"{get_var_name(value)}:", value)
+        print(' '.join([str(i) for i in args]))
 
 
 def quadratic_equation_roots(coeffs):
@@ -12,9 +26,9 @@ def quadratic_equation_roots(coeffs):
     b = coeffs[1]
     c = coeffs[2]
 
-    print('a', a, 'b', b, 'c', c)
+    print_custom('a:', a, 'b:', b, 'c:', c)
     discriminant = b * b - 4 * a * c
-    print("discriminant", discriminant)
+    print_custom("discriminant:", discriminant)
 
     # if discriminant < 0:
     #     return []
@@ -34,16 +48,16 @@ def qubic_equation_roots(coeffs):
     c = coeffs[2]
     d = coeffs[3]
 
-    print('a', a, 'b', b, 'c', c, 'd', d)
+    print_custom('a:', a, 'b:', b, 'c:', c, 'd:', d)
     result = []
 
     # Cardano's formula
     p = (3 * a * c - b * b) / (3 * a * a)
     q = (27 * a * a * d - 9 * a * b * c + 2 * pow(b, 3)) / (27 * pow(a, 3))
-    print('p', p, 'q', q)
+    print_custom('p:', p, 'q:', q)
 
     Q = pow(p/3, 3) + pow(q/2, 2)
-    print("Q", Q)
+    print_custom("Q:", Q)
 
     alpha = pow((-0.5 * q + np.emath.sqrt(Q)), 1/3)
     beta = pow((-0.5 * q - np.emath.sqrt(Q)), 1/3)
@@ -106,65 +120,67 @@ def convexity_direction(coeffs, value):
 
 def get_extremums(coeffs):
     extremums = qubic_equation_roots(coeffs)
-    print("extremums", extremums)
+    print_custom("extremums:", extremums)
 
     return extremums
 
 
 def get_inflection_points(coeffs):
     inflection_points = sorted(quadratic_equation_roots(coeffs))
-    print("inflection_points", inflection_points)
+    print_custom("inflection_points:", inflection_points)
 
     inflection_points_len = len(inflection_points)
-    print("inflection_points_len", inflection_points_len)
+    print_custom("inflection_points_len:", inflection_points_len)
 
     if inflection_points_len == 2:
-        print(
-            "convexity",
+        print_custom(
+            "convexity:",
             f"{convexity_direction(coeffs, inflection_points[0] - 1)} | {inflection_points[0]} | "
-            f"{convexity_direction(coeffs, 0.5 * (inflection_points[0] + inflection_points[1]))} | {inflection_points[1]} | " 
+            f"{convexity_direction(coeffs, 0.5 * (inflection_points[0] + inflection_points[1]))} | "
+            f"{inflection_points[1]} | " 
             f"{convexity_direction(coeffs, inflection_points[1] + 1)}")
 
     return inflection_points
 
 
-def main():
+def play_with_coeffs(coeffs):
     x_step = 0.1
-
-    coeffs_1 = [-1, -3, 1, 6, 0]
-
-    qubick_coeffs = [4 * coeffs_1[0], 3 * coeffs_1[1], 2 * coeffs_1[2], 1 * coeffs_1[3]]
-    quadratic_coeffs = [12 * coeffs_1[0], 6 * coeffs_1[1], 2 * coeffs_1[2]]
-
-    extremums = get_extremums(qubick_coeffs)
-    inflection_points = get_inflection_points(quadratic_coeffs)
-
     index_to_change = 1
     variation_diapason = 5
 
-    start = coeffs_1[index_to_change]
+    first_derivative_coeffs = [4 * coeffs[0], 3 * coeffs[1], 2 * coeffs[2], 1 * coeffs[3]]
+    second_derivative_coeffs = [12 * coeffs[0], 6 * coeffs[1], 2 * coeffs[2]]
 
-    coeffs = [deepcopy(coeffs_1)]
+    extremums = get_extremums(first_derivative_coeffs)
+    inflection_points = get_inflection_points(second_derivative_coeffs)
 
-    extremums = extremums
+    start = coeffs[index_to_change]
+    coeffs_full = [deepcopy(coeffs)]
+    extremums_full = deepcopy(extremums)
 
     for i in range(-1 * variation_diapason, variation_diapason, 1):
-        coeffs_new = coeffs_1
+        coeffs_new = deepcopy(coeffs)
         coeffs_new[index_to_change] = start + i
         # coeff_sum = [sum(i) for i in zip(coeffs_1, coeffs_new)]
-        coeffs.append(deepcopy(coeffs_new))
-        extremums += get_extremums(coeffs_new)
+        coeffs_full.append(deepcopy(coeffs_new))
+        extremums_full += get_extremums(coeffs_new)
 
-    print("coeffs", coeffs)
+    print_custom("coeffs:", coeffs)
 
-    extremums_sorted = sorted(extremums)
-    print("extremums_sorted", extremums_sorted)
+    extremums_sorted = sorted(extremums_full)
+    print_custom("extremums_sorted:", extremums_sorted)
 
     # x_start = extremums_sorted[0] - 0.1
-    x_start = -2
+    x_start = -2.5
     x_end = extremums_sorted[-1] + 0.1
 
-    build_graphs(x_start, x_end, x_step, coeffs)
+    build_graphs(x_start, x_end, x_step, coeffs_full)
+
+
+def main():
+    coeffs_1 = [-1, -3, 1, 6, 0]
+
+    play_with_coeffs(coeffs_1)
 
     # convex condition
     # zeros = quadratic_equation_roots()
