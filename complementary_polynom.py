@@ -70,7 +70,7 @@ def qubic_equation_roots(coeffs):
         x = y - b / (3 * a)
         result.append(x)
 
-    return result
+    return sorted(result)
 
 
 def polynome(coeffs, x):
@@ -103,7 +103,8 @@ def build_graphs(x_start, x_end, x_step, coeff_arrays):
 
     ax = plt.gca()
     ax.set_aspect('equal', adjustable='box')
-    plt.legend()
+    plt.legend(loc='lower right')
+    plt.ylim(-100, 100)
     plt.show()
 
 
@@ -144,43 +145,101 @@ def get_inflection_points(coeffs):
 
 
 def play_with_coeffs(coeffs):
-    x_step = 0.1
     index_to_change = 1
     variation_diapason = 5
 
-    first_derivative_coeffs = [4 * coeffs[0], 3 * coeffs[1], 2 * coeffs[2], 1 * coeffs[3]]
-    second_derivative_coeffs = [12 * coeffs[0], 6 * coeffs[1], 2 * coeffs[2]]
-
-    extremums = get_extremums(first_derivative_coeffs)
-    inflection_points = get_inflection_points(second_derivative_coeffs)
-
     start = coeffs[index_to_change]
     coeffs_full = [deepcopy(coeffs)]
-    extremums_full = deepcopy(extremums)
 
     for i in range(-1 * variation_diapason, variation_diapason, 1):
         coeffs_new = deepcopy(coeffs)
         coeffs_new[index_to_change] = start + i
-        # coeff_sum = [sum(i) for i in zip(coeffs_1, coeffs_new)]
         coeffs_full.append(deepcopy(coeffs_new))
-        extremums_full += get_extremums(coeffs_new)
 
-    print_custom("coeffs:", coeffs)
+    build_graph_group(coeffs_full, 0.1, 0.001)
 
-    extremums_sorted = sorted(extremums_full)
+
+def build_graph_group(coeffs_group, x_step, x_margin):
+    extremums = []
+
+    for coeffs in coeffs_group:
+        extremums += get_extremums(coeffs)
+
+    extremums_sorted = sorted(extremums)
     print_custom("extremums_sorted:", extremums_sorted)
 
-    # x_start = extremums_sorted[0] - 0.1
-    x_start = -2.5
-    x_end = extremums_sorted[-1] + 0.1
+    x_start = extremums_sorted[0] - x_margin
+    # x_start = -2.5
+    x_end = extremums_sorted[-1] + x_margin
 
-    build_graphs(x_start, x_end, x_step, coeffs_full)
+    build_graphs(x_start, x_end, x_step, coeffs_group)
+
+
+def fix_and_search_coeffs(coeffs):
+    extremums = sorted(get_extremums(coeffs))
+    # global_extremum = max(polynome(coeffs_1, i) for i in extremums)
+    global_extremum = max(extremums)
+    print("global_extremum:", global_extremum)
+
+    # margin = (extremums[-1] - extremums[0]) * 0.1
+    # x_min = extremums[0] - margin
+    # x_max = extremums[-1] + margin
+    # build_graphs(x_min, x_max, 0.1, [coeffs_1])
+
+    # take global extremum
+    # fix a and b coeffs, play with c coeff searching for d coeff having same extremum
+    a = coeffs[0]
+    b = coeffs[1]
+
+    coeffs_full = [deepcopy(coeffs)]
+
+    for c in range(5, 10, 1):
+        d = -4 * a * pow(global_extremum, 3) - 3 * b * pow(global_extremum, 2) - 2 * c * pow(global_extremum, 1)
+        coeffs_full.append(deepcopy([a, b, c, d]))
+
+    print_custom("coeffs_full:", coeffs_full)
+
+    build_graph_group(coeffs_full, 0.1, 0.001)
+
+    # take global extremum
+    # fix a and d coeffs, play with b coeff searching for c coeff having same extremum
+    a = coeffs[0]
+    d = coeffs[3]
+
+    coeffs_full = [deepcopy(coeffs)]
+
+    for b in range(-8, -3, 1):
+        c = (-4 * a * pow(global_extremum, 3) - 3 * b * pow(global_extremum, 2) - d) / (2 * global_extremum)
+        coeffs_full.append(deepcopy([a, b, c, d]))
+
+    print_custom("coeffs_full:", coeffs_full)
+
+    build_graph_group(coeffs_full, 0.1, 0.001)
+
+    # take global extremum
+    # fix c and d coeffs, play with a coeff searching for b coeff having same extremum
+    c = coeffs[2]
+    d = coeffs[3]
+
+    coeffs_full = [deepcopy(coeffs)]
+
+    for a in range(-8, -3, 1):
+        b = (-4 * a * pow(global_extremum, 3) - 2 * c * pow(global_extremum, 1) - d) / (3 * pow(global_extremum, 2))
+        coeffs_full.append(deepcopy([a, b, c, d]))
+
+    print_custom("coeffs_full:", coeffs_full)
+
+    build_graph_group(coeffs_full, 0.1, 0.001)
 
 
 def main():
     coeffs_1 = [-1, -3, 1, 6, 0]
+    first_derivative_coeffs = [4 * coeffs_1[0], 3 * coeffs_1[1], 2 * coeffs_1[2], 1 * coeffs_1[3]]
+    second_derivative_coeffs = [12 * coeffs_1[0], 6 * coeffs_1[1], 2 * coeffs_1[2]]
 
-    play_with_coeffs(coeffs_1)
+    # play_with_coeffs(coeffs_1)
+    fix_and_search_coeffs(coeffs_1)
+
 
     # convex condition
     # zeros = quadratic_equation_roots()
