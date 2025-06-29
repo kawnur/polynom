@@ -1,6 +1,10 @@
+from copy import deepcopy
 from math import sqrt
 import matplotlib.pyplot as plt
 import numpy as np
+
+
+DELIMITER = '#' * 180
 
 
 def quadratic_equation_roots(coeffs):
@@ -100,23 +104,15 @@ def convexity_direction(coeffs, value):
         return "value is 0"
 
 
-def main():
-
-
-    x_start = -2.5
-    x_end = 1.5
-    x_step = 0.1
-
-    coeffs_1 = [-1, -3, 1, 6, 0]
-    coeffs_2 = [-1, -3, 0, 0, 0]
-
-    qubick_coeffs = [4 * coeffs_1[0], 3 * coeffs_1[1], 2 * coeffs_1[2], 1 * coeffs_1[3]]
-    quadratic_coeffs = [12 * coeffs_1[0], 6 * coeffs_1[1], 2 * coeffs_1[2]]
-
-    extremums = qubic_equation_roots(qubick_coeffs)
+def get_extremums(coeffs):
+    extremums = qubic_equation_roots(coeffs)
     print("extremums", extremums)
 
-    inflection_points = sorted(quadratic_equation_roots(quadratic_coeffs))
+    return extremums
+
+
+def get_inflection_points(coeffs):
+    inflection_points = sorted(quadratic_equation_roots(coeffs))
     print("inflection_points", inflection_points)
 
     inflection_points_len = len(inflection_points)
@@ -125,24 +121,50 @@ def main():
     if inflection_points_len == 2:
         print(
             "convexity",
-            f"{convexity_direction(quadratic_coeffs, inflection_points[0] - 1)} | {inflection_points[0]} | "
-            f"{convexity_direction(quadratic_coeffs, 0.5 * (inflection_points[0] + inflection_points[1]))} | {inflection_points[1]} | " 
-            f"{convexity_direction(quadratic_coeffs, inflection_points[1] + 1)}")
+            f"{convexity_direction(coeffs, inflection_points[0] - 1)} | {inflection_points[0]} | "
+            f"{convexity_direction(coeffs, 0.5 * (inflection_points[0] + inflection_points[1]))} | {inflection_points[1]} | " 
+            f"{convexity_direction(coeffs, inflection_points[1] + 1)}")
 
-    # print(quadratic_equation_roots(1, -3, 2))
+    return inflection_points
 
-    # coeff_sum = [sum(i) for i in zip(coeffs_1, coeffs_2)]
 
-    # start = -3
+def main():
+    x_step = 0.1
 
-    # print(coeff_sum)
-    # for i in range(5):
-    #     coeffs_new = coeffs_2
-    #     coeffs_new[0] = start + i
-    #     coeff_sum = [sum(i) for i in zip(coeffs_1, coeffs_new)]
-    #     build_graphs(x_start, x_end, x_step, [coeffs_1, coeffs_new, coeff_sum])
+    coeffs_1 = [-1, -3, 1, 6, 0]
 
-    build_graphs(x_start, x_end, x_step, [coeffs_1])
+    qubick_coeffs = [4 * coeffs_1[0], 3 * coeffs_1[1], 2 * coeffs_1[2], 1 * coeffs_1[3]]
+    quadratic_coeffs = [12 * coeffs_1[0], 6 * coeffs_1[1], 2 * coeffs_1[2]]
+
+    extremums = get_extremums(qubick_coeffs)
+    inflection_points = get_inflection_points(quadratic_coeffs)
+
+    index_to_change = 1
+    variation_diapason = 5
+
+    start = coeffs_1[index_to_change]
+
+    coeffs = [deepcopy(coeffs_1)]
+
+    extremums = extremums
+
+    for i in range(-1 * variation_diapason, variation_diapason, 1):
+        coeffs_new = coeffs_1
+        coeffs_new[index_to_change] = start + i
+        # coeff_sum = [sum(i) for i in zip(coeffs_1, coeffs_new)]
+        coeffs.append(deepcopy(coeffs_new))
+        extremums += get_extremums(coeffs_new)
+
+    print("coeffs", coeffs)
+
+    extremums_sorted = sorted(extremums)
+    print("extremums_sorted", extremums_sorted)
+
+    # x_start = extremums_sorted[0] - 0.1
+    x_start = -2
+    x_end = extremums_sorted[-1] + 0.1
+
+    build_graphs(x_start, x_end, x_step, coeffs)
 
     # convex condition
     # zeros = quadratic_equation_roots()
