@@ -1,3 +1,4 @@
+import time
 from copy import deepcopy
 from math import sqrt
 import matplotlib.pyplot as plt
@@ -42,6 +43,31 @@ def quadratic_equation_roots(coeffs):
     return [x_1, x_2]
 
 
+def get_cardano_coeff_p(coeffs):
+    a = coeffs[0]
+    b = coeffs[1]
+    c = coeffs[2]
+    d = coeffs[3]
+
+    # print_custom('a:', a, 'b:', b, 'c:', c, 'd:', d)
+    return (3 * a * c - b * b) / (3 * a * a)
+
+
+def get_cardano_coeff_q(coeffs):
+    a = coeffs[0]
+    b = coeffs[1]
+    c = coeffs[2]
+    d = coeffs[3]
+
+    # print_custom('a:', a, 'b:', b, 'c:', c, 'd:', d)
+    return (27 * a * a * d - 9 * a * b * c + 2 * pow(b, 3)) / (27 * pow(a, 3))
+
+
+def get_cardano_coeff_Q(p, q):
+    # print_custom('p:', p, 'q:', q)
+    return pow(p/3, 3) + pow(q/2, 2)
+
+
 def qubic_equation_roots(coeffs):
     a = coeffs[0]
     b = coeffs[1]
@@ -52,11 +78,11 @@ def qubic_equation_roots(coeffs):
     result = []
 
     # Cardano's formula
-    p = (3 * a * c - b * b) / (3 * a * a)
-    q = (27 * a * a * d - 9 * a * b * c + 2 * pow(b, 3)) / (27 * pow(a, 3))
+    p = get_cardano_coeff_p(coeffs)
+    q = get_cardano_coeff_p(coeffs)
     print_custom('p:', p, 'q:', q)
 
-    Q = pow(p/3, 3) + pow(q/2, 2)
+    Q = get_cardano_coeff_Q(p, q)
     print_custom("Q:", Q)
 
     alpha = pow((-0.5 * q + np.emath.sqrt(Q)), 1/3)
@@ -104,6 +130,7 @@ def build_graphs(x_start, x_end, x_step, coeff_arrays):
     ax = plt.gca()
     ax.set_aspect('equal', adjustable='box')
     plt.legend(loc='lower right')
+    plt.xlim(-100, 100)
     plt.ylim(-100, 100)
     plt.show()
 
@@ -168,9 +195,10 @@ def build_graph_group(coeffs_group, x_step, x_margin):
     extremums_sorted = sorted(extremums)
     print_custom("extremums_sorted:", extremums_sorted)
 
-    x_start = extremums_sorted[0] - x_margin
-    # x_start = -2.5
-    x_end = extremums_sorted[-1] + x_margin
+    # x_start = extremums_sorted[0] - x_margin
+    x_start = -100
+    # x_end = extremums_sorted[-1] + x_margin
+    x_end = 100
 
     build_graphs(x_start, x_end, x_step, coeffs_group)
 
@@ -244,32 +272,100 @@ def main():
     # Q = 0 (p = q = 0) in Cardano's formula
     # fix a, from one extremum condition get expressions for b and c
     # from 'same extremum' condition get qubic equation and find d
-    coeffs_full = [deepcopy(coeffs_1)]
+    # coeffs_full = [deepcopy(coeffs_1)]
 
     extremums = sorted(get_extremums(coeffs_1))
     x = max(extremums)
     print("x:", x)
 
-    a = coeffs_1[0]
+    coeffs_full = [deepcopy(coeffs_1)]
 
-    c3 = 1
-    c2 = 2 * x * pow(27 * a, 1/3)
-    c1 = 3 * pow(x, 2) * np.emath.sqrt(3 * a) * pow(27 * a, 1/6)
-    c0 = 4 * a * pow(x, 3)
-    t = qubic_equation_roots([c3, c2, c1, c0])
-    print("t:", t)
+    a1 = coeffs_1[0]
+    b1 = coeffs_1[1]
+    c1 = coeffs_1[2]
+    d1 = coeffs_1[3]
 
-    ds = [pow(i, 1/3) for i in t]
-    print("ds:", ds)
+    a2 = deepcopy(a1)
+    diff_a = 1
+    stop_condition = False
 
-    for d in ds:
-        c = pow(27 * a * d * d, 1/3)
-        b = np.emath.sqrt(3 * a * c)
-        coeffs_full.append(deepcopy([a, b, c, d]))
+    while True:
+        a2 += pow(-1, diff_a) * diff_a
+
+        print("a2", a2)
+
+        if a1 + a2 == 0:
+            a2 += 1
+            continue
+
+        # same extremum condition
+        ts = quadratic_equation_roots([(3 * x) / (4 * (a1 + a2)), (3 * pow(x, 2) + 1 / (6 * (a1 + a2))), 4 * (a1 + a2) * pow(x, 3)])
+
+        for t in ts:
+            b2 = t - b1
+
+            c2 = (3/8) * pow(b1 + b2, 2) / (a1 + a2) - c1
+            d2 = (1/6) * (b1 + b2) / (a1 + a2) - d1
+            # b2 = (1 / (3 * pow(x, 2))) * (-4 * a2 * pow(x, 3) - 2 * (c1 + c2) * x - (d1 + d2)) - b1
+
+            coeffs_2 = deepcopy([(a1 + a2), (b1 + b2), (c1 + c2), (d1 + d2)])
+
+            p = get_cardano_coeff_p(coeffs_2)
+            q = get_cardano_coeff_p(coeffs_2)
+            # print_custom('p:', p, 'q:', q)
+
+            Q = get_cardano_coeff_Q(p, q)
+            # print_custom("Q:", Q)
+            print_custom("a2", a2, "b2", b2, "Q:", Q)
+
+            # time.sleep(0.1)
+
+            # if Q == 0 and (b1 + b2) != 0 and (c1 + c2) != 0 and (d1 + d2) != 0:
+            # if (b1 + b2) != 0 and (c1 + c2) != 0 and (d1 + d2) != 0:
+            if True:
+                coeffs_full.append(coeffs_2)
+
+                if len(coeffs_full) == 6:
+                    stop_condition = True
+                    break
+
+        if stop_condition:
+            break
+
+        a2 += 1
 
     print_custom("coeffs_full:", coeffs_full)
 
-    build_graph_group(coeffs_full, 0.1, 5)
+    build_graph_group(coeffs_full, 0.1, 0.001)
+
+
+
+
+
+    # extremums = sorted(get_extremums(coeffs_1))
+    # x = max(extremums)
+    # print("x:", x)
+    #
+    # a = coeffs_1[0]
+    #
+    # c3 = 1
+    # c2 = 2 * x * pow(27 * a, 1/3)
+    # c1 = 3 * pow(x, 2) * np.emath.sqrt(3 * a) * pow(27 * a, 1/6)
+    # c0 = 4 * a * pow(x, 3)
+    # t = qubic_equation_roots([c3, c2, c1, c0])
+    # print("t:", t)
+    #
+    # ds = [pow(i, 1/3) for i in t]
+    # print("ds:", ds)
+    #
+    # for d in ds:
+    #     c = pow(27 * a * d * d, 1/3)
+    #     b = np.emath.sqrt(3 * a * c)
+    #     coeffs_full.append(deepcopy([a, b, c, d]))
+    #
+    # print_custom("coeffs_full:", coeffs_full)
+    #
+    # build_graph_group(coeffs_full, 0.1, 5)
 
     # convex condition
     # zeros = quadratic_equation_roots()
