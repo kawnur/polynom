@@ -285,54 +285,44 @@ def main():
     c1 = coeffs_1[2]
     d1 = coeffs_1[3]
 
-    a2 = deepcopy(a1)
-    diff_a = 1
+    # a2 = deepcopy(a1)
+    # diff_a = 1
     stop_condition = False
 
     while True:
-        a2 += pow(-1, diff_a) * diff_a
+        # a2 += pow(-1, diff_a) * diff_a
 
-        print("a2", a2)
+        # print("a2", a2)
 
-        if a1 + a2 == 0:
-            a2 += 1
-            continue
+        # if a1 + a2 == 0:
+        #     a2 += 1
+        #     continue
 
         # same extremum condition
-        ts = quadratic_equation_roots([(3 * x) / (4 * (a1 + a2)), (3 * pow(x, 2) + 1 / (6 * (a1 + a2))), 4 * (a1 + a2) * pow(x, 3)])
+        # ts = quadratic_equation_roots([(3 * x) / (4 * (a1 + a2)), (3 * pow(x, 2) + 1 / (6 * (a1 + a2))), 4 * (a1 + a2) * pow(x, 3)])
+        # one t condition
+        a2 = 1 / (6 * pow(x, 2) * (2 * sqrt(3) - 3)) - a1
+        b2 = (-2/3) * ((a1 + a2) / x) * (3 * pow(x, 2) + 1 / (6 * (a1 + a2))) - b1
 
-        for t in ts:
-            b2 = t - b1
 
-            c2 = (3/8) * pow(b1 + b2, 2) / (a1 + a2) - c1
-            d2 = (1/6) * (b1 + b2) / (a1 + a2) - d1
-            # b2 = (1 / (3 * pow(x, 2))) * (-4 * a2 * pow(x, 3) - 2 * (c1 + c2) * x - (d1 + d2)) - b1
+        c2 = (3/8) * pow(b1 + b2, 2) / (a1 + a2) - c1
+        d2 = (1/6) * (b1 + b2) / (a1 + a2) - d1
+        # b2 = (1 / (3 * pow(x, 2))) * (-4 * a2 * pow(x, 3) - 2 * (c1 + c2) * x - (d1 + d2)) - b1
 
-            coeffs_2 = deepcopy([(a1 + a2), (b1 + b2), (c1 + c2), (d1 + d2)])
+        coeffs_2 = deepcopy([(a1 + a2), (b1 + b2), (c1 + c2), (d1 + d2)])
 
-            p = get_cardano_coeff_p(coeffs_2)
-            q = get_cardano_coeff_p(coeffs_2)
-            # print_custom('p:', p, 'q:', q)
+        p = get_cardano_coeff_p(coeffs_2)
+        q = get_cardano_coeff_p(coeffs_2)
+        # print_custom('p:', p, 'q:', q)
 
-            Q = get_cardano_coeff_Q(p, q)
-            # print_custom("Q:", Q)
-            print_custom("a2", a2, "b2", b2, "Q:", Q)
+        Q = get_cardano_coeff_Q(p, q)
+        # print_custom("Q:", Q)
+        print_custom("a2", a2, "b2", b2, "Q:", Q)
 
-            # time.sleep(0.1)
+        # time.sleep(0.1)
 
-            # if Q == 0 and (b1 + b2) != 0 and (c1 + c2) != 0 and (d1 + d2) != 0:
-            # if (b1 + b2) != 0 and (c1 + c2) != 0 and (d1 + d2) != 0:
-            if True:
-                coeffs_full.append(coeffs_2)
-
-                if len(coeffs_full) == 6:
-                    stop_condition = True
-                    break
-
-        if stop_condition:
-            break
-
-        a2 += 1
+        coeffs_full.append(coeffs_2)
+        break
 
     print_custom("coeffs_full:", coeffs_full)
 
