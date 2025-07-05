@@ -79,7 +79,7 @@ def qubic_equation_roots(coeffs):
 
     # Cardano's formula
     p = get_cardano_coeff_p(coeffs)
-    q = get_cardano_coeff_p(coeffs)
+    q = get_cardano_coeff_q(coeffs)
     print_custom('p:', p, 'q:', q)
 
     Q = get_cardano_coeff_Q(p, q)
@@ -101,7 +101,8 @@ def qubic_equation_roots(coeffs):
 
 def polynome(coeffs, x):
     sum = 0
-    power_biggest = len(coeffs) - 1
+    # power_biggest = len(coeffs) - 1
+    power_biggest = 4
 
     for i in range(len(coeffs)):
         # print(i)
@@ -111,6 +112,7 @@ def polynome(coeffs, x):
 
 
 def build_data(x_start, x_end, x_step, coeffs):
+    print("####coeffs:", coeffs)
     data = [[], []]
     x = x_start
 
@@ -119,10 +121,14 @@ def build_data(x_start, x_end, x_step, coeffs):
         data[1].append(polynome(coeffs, x))
         x += x_step
 
+    # print(data[0])
+    # print(data[1])
+
     return data
 
 
 def build_graphs(x_start, x_end, x_step, coeff_arrays):
+    print("coeff_arrays:", coeff_arrays)
     for array in coeff_arrays:
         data = build_data(x_start, x_end, x_step, array)
         plt.plot(data[0], data[1], label=str(array))
@@ -146,8 +152,16 @@ def convexity_direction(coeffs, value):
         return "value is 0"
 
 
+def get_first_derivative_coeffs(coeffs):
+    return [4 * coeffs[0], 3 * coeffs[1], 2 * coeffs[2], 1 * coeffs[3]]
+
+
+def get_second_derivative_coeffs(coeffs):
+    return [12 * coeffs[0], 6 * coeffs[1], 2 * coeffs[2]]
+
+
 def get_extremums(coeffs):
-    extremums = qubic_equation_roots(coeffs)
+    extremums = qubic_equation_roots(get_first_derivative_coeffs(coeffs))
     print_custom("extremums:", extremums)
 
     return extremums
@@ -187,6 +201,7 @@ def play_with_coeffs(coeffs):
 
 
 def build_graph_group(coeffs_group, x_step, x_margin):
+    print("coeffs_group:", coeffs_group)
     extremums = []
 
     for coeffs in coeffs_group:
@@ -262,8 +277,8 @@ def fix_and_search_coeffs(coeffs):
 
 def main():
     coeffs_1 = [-1, -3, 1, 6, 0]
-    first_derivative_coeffs = [4 * coeffs_1[0], 3 * coeffs_1[1], 2 * coeffs_1[2], 1 * coeffs_1[3]]
-    second_derivative_coeffs = [12 * coeffs_1[0], 6 * coeffs_1[1], 2 * coeffs_1[2]]
+    first_derivative_coeffs = get_first_derivative_coeffs(coeffs_1)
+    second_derivative_coeffs = get_second_derivative_coeffs(coeffs_1)
 
     # play_with_coeffs(coeffs_1)
     # fix_and_search_coeffs(coeffs_1)
@@ -285,46 +300,31 @@ def main():
     c1 = coeffs_1[2]
     d1 = coeffs_1[3]
 
-    # a2 = deepcopy(a1)
-    # diff_a = 1
-    stop_condition = False
+    # a3 = a1 - 1
+    # distance = 2
+    #
+    # for b2 in range(-distance, distance, 1):
+    #     b3 = b1 + b2
+    #     c3 = (3 * pow(b3, 2)) / (8 * a3)
+    #     d3 = pow(b3, 3) / (16 * pow(a3, 2))
+    #     coeffs_full.append(deepcopy([a3, b3, c3, d3]))
 
-    while True:
-        # a2 += pow(-1, diff_a) * diff_a
+    a3 = (-3 / 20) * x
+    b3 = (3/5) * pow(x, 2)
+    c3 = -0.9 * pow(x, 3)
+    d3 = (3/5) * pow(x, 4)
 
-        # print("a2", a2)
+    print_custom('a3:', a3, 'b3:', b3, 'c3:', c3, 'd3:', d3)
 
-        # if a1 + a2 == 0:
-        #     a2 += 1
-        #     continue
-
-        # same extremum condition
-        # ts = quadratic_equation_roots([(3 * x) / (4 * (a1 + a2)), (3 * pow(x, 2) + 1 / (6 * (a1 + a2))), 4 * (a1 + a2) * pow(x, 3)])
-        # one t condition
-        a2 = 1 / (6 * pow(x, 2) * (2 * sqrt(3) - 3)) - a1
-        b2 = (-2/3) * ((a1 + a2) / x) * (3 * pow(x, 2) + 1 / (6 * (a1 + a2))) - b1
-
-
-        c2 = (3/8) * pow(b1 + b2, 2) / (a1 + a2) - c1
-        d2 = (1/6) * (b1 + b2) / (a1 + a2) - d1
-        # b2 = (1 / (3 * pow(x, 2))) * (-4 * a2 * pow(x, 3) - 2 * (c1 + c2) * x - (d1 + d2)) - b1
-
-        coeffs_2 = deepcopy([(a1 + a2), (b1 + b2), (c1 + c2), (d1 + d2)])
-
-        p = get_cardano_coeff_p(coeffs_2)
-        q = get_cardano_coeff_p(coeffs_2)
-        # print_custom('p:', p, 'q:', q)
-
-        Q = get_cardano_coeff_Q(p, q)
-        # print_custom("Q:", Q)
-        print_custom("a2", a2, "b2", b2, "Q:", Q)
-
-        # time.sleep(0.1)
-
-        coeffs_full.append(coeffs_2)
-        break
+    coeffs_3 = deepcopy([a3, b3, c3, d3])
+    coeffs_full.append(coeffs_3)
 
     print_custom("coeffs_full:", coeffs_full)
+
+    print("#" * 50)
+    dc = get_first_derivative_coeffs(coeffs_3)
+    print(qubic_equation_roots(dc))
+    print("#" * 50)
 
     build_graph_group(coeffs_full, 0.1, 0.001)
 
