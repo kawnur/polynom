@@ -113,14 +113,14 @@ def polynome(coeffs, x):
     return sum
 
 
-def build_data(x_start, x_end, x_step, coeffs):
+def build_data(x_start, x_end, x_step, coeffs, func):
     print("####coeffs:", coeffs)
     data = [[], []]
     x = x_start
 
     while x <= x_end:
         data[0].append(x)
-        data[1].append(polynome(coeffs, x))
+        data[1].append(func(coeffs, x))
         x += x_step
 
     # print(data[0])
@@ -129,10 +129,10 @@ def build_data(x_start, x_end, x_step, coeffs):
     return data
 
 
-def build_graphs(x_start, x_end, x_step, coeff_arrays):
+def build_graphs(x_start, x_end, x_step, coeff_arrays, func):
     print("coeff_arrays:", coeff_arrays)
     for array in coeff_arrays:
-        data = build_data(x_start, x_end, x_step, array)
+        data = build_data(x_start, x_end, x_step, array, func)
         plt.plot(data[0], data[1], label=str(array))
 
     ax = plt.gca()
@@ -199,10 +199,10 @@ def play_with_coeffs(coeffs):
         coeffs_new[index_to_change] = start + i
         coeffs_full.append(deepcopy(coeffs_new))
 
-    build_graph_group(coeffs_full, 0.1, 0.001)
+    build_graph_group(coeffs_full, 0.1, 0.001, polynome)
 
 
-def build_graph_group(coeffs_group, x_step, x_margin):
+def build_graph_group(coeffs_group, x_step, x_margin, func):
     print("coeffs_group:", coeffs_group)
     extremums = []
 
@@ -217,7 +217,24 @@ def build_graph_group(coeffs_group, x_step, x_margin):
     # x_end = extremums_sorted[-1] + x_margin
     x_end = 100
 
-    build_graphs(x_start, x_end, x_step, coeffs_group)
+    build_graphs(x_start, x_end, x_step, coeffs_group, func)
+
+
+def build_coeff_visualization_group(coeffs_group):
+    print("coeffs_group:", coeffs_group)
+
+    for array in coeffs_group:
+        indexes = [i + 1 for i in range(len(array))]
+        print("indexes:", indexes)
+        print("array:", array)
+        plt.plot(indexes, array, label=str(array))
+
+    ax = plt.gca()
+    ax.set_aspect('equal', adjustable='box')
+    plt.legend(loc='upper left')
+    plt.xlim(0, 10)
+    plt.ylim(-100, 100)
+    plt.show()
 
 
 def fix_and_search_coeffs(coeffs):
@@ -244,7 +261,7 @@ def fix_and_search_coeffs(coeffs):
 
     print_custom("coeffs_full:", coeffs_full)
 
-    build_graph_group(coeffs_full, 0.1, 0.001)
+    build_graph_group(coeffs_full, 0.1, 0.001, polynome)
 
     # take global extremum
     # fix a and d coeffs, play with b coeff searching for c coeff having same extremum
@@ -259,7 +276,7 @@ def fix_and_search_coeffs(coeffs):
 
     print_custom("coeffs_full:", coeffs_full)
 
-    build_graph_group(coeffs_full, 0.1, 0.001)
+    build_graph_group(coeffs_full, 0.1, 0.001, polynome)
 
     # take global extremum
     # fix c and d coeffs, play with a coeff searching for b coeff having same extremum
@@ -274,7 +291,7 @@ def fix_and_search_coeffs(coeffs):
 
     print_custom("coeffs_full:", coeffs_full)
 
-    build_graph_group(coeffs_full, 0.1, 0.001)
+    build_graph_group(coeffs_full, 0.1, 0.001, polynome)
 
 
 def get_d_interval(a, b, c):
@@ -361,24 +378,51 @@ def main():
     #         # for d in range(math.ceil(d1), math.floor(d2), 1):
     #         #     get_complementary_polynom(deepcopy([a, b, c, d]))
 
-    coeffs_full = [deepcopy(coeffs_1)]
-    coeffs_full.append(get_complementary_polynom_coeffs(coeffs_1))
+    #############################################################################################
 
-    rate = 0.5
-    step = 0.1
+    # coeffs_full = [deepcopy(coeffs_1)]
+    # coeffs_full.append(get_complementary_polynom_coeffs(coeffs_1))
+    # build_coeff_visualization_group(coeffs_full)
+    #
+    # rate = 0.5
+    # step = 0.1
+    #
+    # for k in range(0, 5, 1):
+    #     base = rate - k * step
+    #     print("base:", base)
+    #     coeffs = [coeffs_1[i] * pow(base, 4 - i) for i in range(len(coeffs_1))]
+    #
+    #     #coeffs_full.append(coeffs)
+    #     #coeffs_full.append(get_complementary_polynom_coeffs(coeffs))
+    #     build_coeff_visualization_group([coeffs, get_complementary_polynom_coeffs(coeffs)])
+    #
+    # build_graph_group(coeffs_full, 0.1, 0.001, polynome)
 
-    for k in range(0, 5, 1):
-        base = rate - k * step
-        print("base:", base)
-        coeffs = [coeffs_1[i] * pow(base, 4 - i) for i in range(len(coeffs_1))]
+    #############################################################################################
 
-        coeffs_full.append(coeffs)
-        coeffs_full.append(get_complementary_polynom_coeffs(coeffs))
+    # build polynoms with 1 same extremum
 
-    build_graph_group(coeffs_full, 0.1, 0.001)
+    coeffs_full = []
 
-    # for coeffs in coeffs_full:
-    #     get_complementary_polynom(coeffs)
+    a1 = -1
+    b1 = -2
+
+    c1 = (3 * pow(b1, 2)) / (8 * a1)
+    d1 = pow(b1, 3) / (16 * pow(a1, 2))
+
+    coeffs_full.append([a1, b1, c1, d1])
+
+    for a2 in range(-10, -1, 1):
+        if a2 == 0:
+            continue
+
+        b2 = (a2 / a1) * b1
+        c2 = (3 * pow(b2, 2)) / (8 * a2)
+        d2 = pow(b2, 3) / (16 * pow(a2, 2))
+
+        coeffs_full.append([a2, b2, c2, d2])
+
+    build_graph_group(coeffs_full, 0.1, 0.001, polynome)
 
 
 if __name__ == '__main__':
