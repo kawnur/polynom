@@ -344,19 +344,79 @@ def get_complementary_polynom_coeffs(coeffs):
     coeffs_3.append((-1) * e3)
     # coeffs_full.append(coeffs_3)
 
-    # print_custom("coeffs_full:", coeffs_full)
+    print_custom("coeffs_full:", coeffs_full)
 
-    # build_graph_group(coeffs_full, 0.1, 0.001)
+    build_graph_group(coeffs_full, 0.1, 0.001, polynome)
 
     return coeffs_3
 
 
+def build_polynoms_with_one_same_extremum(coeffs):
+    coeffs_full = []
+
+    #####################################################
+
+    # a1 = -1
+    # b1 = -2
+    #
+    # c1 = (3 * pow(b1, 2)) / (8 * a1)
+    # d1 = pow(b1, 3) / (16 * pow(a1, 2))
+    #
+    # coeffs_1 = [a1, b1, c1, d1]
+    #
+    # coeffs_full.append(deepcopy(coeffs_1))
+    #
+    # # for a2 in range(-100, -1, 1):
+    # # (b * c) / (a * d) = 6
+    # for i in range(0, 10, 1):
+    #     k = 0.9 - 0.05 * i
+    #     a2 = a1 * k
+    #
+    #     if a2 == 0:
+    #         continue
+    #
+    #     b2 = (a2 / a1) * b1
+    #     c2 = (3 * pow(b2, 2)) / (8 * a2)
+    #     d2 = pow(b2, 3) / (16 * pow(a2, 2))
+    #
+    #     coeffs_full.append([a2, b2, c2, d2])
+
+    #####################################################
+
+    # rate = 0.5
+    # step = 0.1
+    #
+    # for k in range(0, 5, 1):
+    #     coeffs_2 = deepcopy(coeffs)
+    #     base = rate - k * step
+    #     print("base:", base)
+    #     coeffs_2[1] *= base
+    #     coeffs_full.append(coeffs_2)
+
+    #####################################################
+
+    # for a in range(-10, 0, 1):
+    a = -1
+    # for b in range(-10, 0, 1):
+    b = -1
+    for c in range(-10, 0, 1):
+        d = 1 * (c * b) / a
+
+        coeffs_full.append([a, b, c, d])
+
+    #####################################################
+
+    build_graph_group(coeffs_full, 0.01, 0.001, polynome)
+
+    coeffs_full.clear()
+
+
 def main():
-    # coeffs_1 = [-1, -3, 1, 6, 0]
+    coeffs_1 = [-1, -3, 1, 6, 0]
 
     # play_with_coeffs(coeffs_1)
     # fix_and_search_coeffs(coeffs_1)
-    # get_complementary_polynom(coeffs_1)
+    # get_complementary_polynom_coeffs(coeffs_1)
 
     # search for polynoms with 3 extremums
     # for a in range(-2, -1, 1):
@@ -383,74 +443,28 @@ def main():
     # coeffs_full = [deepcopy(coeffs_1)]
     # coeffs_full.append(get_complementary_polynom_coeffs(coeffs_1))
     # build_coeff_visualization_group(coeffs_full)
-    #
-    # rate = 0.5
-    # step = 0.1
-    #
-    # for k in range(0, 5, 1):
-    #     base = rate - k * step
-    #     print("base:", base)
-    #     coeffs = [coeffs_1[i] * pow(base, 4 - i) for i in range(len(coeffs_1))]
-    #
-    #     #coeffs_full.append(coeffs)
-    #     #coeffs_full.append(get_complementary_polynom_coeffs(coeffs))
-    #     build_coeff_visualization_group([coeffs, get_complementary_polynom_coeffs(coeffs)])
-    #
-    # build_graph_group(coeffs_full, 0.1, 0.001, polynome)
 
     #############################################################################################
 
-    # build polynoms with 1 same extremum
+    coeffs_full = [deepcopy(coeffs_1)]
 
-    coeffs_full = []
+    rate = 0.5
+    step = 0.1
 
-    # a1 = -1
-    # b1 = -2
-    #
-    # c1 = (3 * pow(b1, 2)) / (8 * a1)
-    # d1 = pow(b1, 3) / (16 * pow(a1, 2))
-    #
-    # coeffs_1 = [a1, b1, c1, d1]
-    #
-    # coeffs_full.append(deepcopy(coeffs_1))
+    for k in range(0, 5, 1):
+        base = rate - k * step
+        print("base:", base)
+        coeffs = [coeffs_1[i] * pow(base, 4 - i) for i in range(len(coeffs_1))]
 
-    # for a2 in range(-100, -1, 1):
-    # (b * c) / (a * d) = 6
-    # for i in range(0, 10, 1):
-    #     k = 0.9 - 0.05 * i
-    #     a2 = a1 * k
-    #
-    #     if a2 == 0:
-    #         continue
-    #
-    #     b2 = (a2 / a1) * b1
-    #     c2 = (3 * pow(b2, 2)) / (8 * a2)
-    #     d2 = pow(b2, 3) / (16 * pow(a2, 2))
-    #
-    #     coeffs_full.append([a2, b2, c2, d2])
+        coeffs_full.append(coeffs)
+        coeffs_full.append(get_complementary_polynom_coeffs(coeffs))
+        # build_coeff_visualization_group([coeffs, get_complementary_polynom_coeffs(coeffs)])
 
-    # rate = 0.5
-    # step = 0.1
-    #
-    # for k in range(0, 5, 1):
-    #     coeffs_2 = deepcopy(coeffs_1)
-    #     base = rate - k * step
-    #     print("base:", base)
-    #     coeffs_2[1] *= base
-    #     coeffs_full.append(coeffs_2)
+    build_graph_group(coeffs_full, 0.1, 0.001, polynome)
 
-    # for a in range(-10, 0, 1):
-    a = -1
-    # for b in range(-10, 0, 1):
-    b = -1
-    for c in range(-10, 0, 1):
-        d = 1 * (c * b) / a
+    #############################################################################################
 
-        coeffs_full.append([a, b, c, d])
-
-    build_graph_group(coeffs_full, 0.01, 0.001, polynome)
-
-    coeffs_full.clear()
+    # build_polynoms_with_one_same_extremum(coeffs_1)
 
 
 if __name__ == '__main__':
