@@ -346,7 +346,7 @@ def get_complementary_polynom_coeffs(coeffs):
 
     print_custom("coeffs_full:", coeffs_full)
 
-    build_graph_group(coeffs_full, 0.1, 0.001, polynome)
+    # build_graph_group(coeffs_full, 0.1, 0.001, polynome)
 
     return coeffs_3
 
