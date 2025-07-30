@@ -1,3 +1,5 @@
+from builtins import str
+
 import numpy
 from sympy import *
 
@@ -127,9 +129,75 @@ def try_equations2():
         pprint(expr2, use_unicode=false, num_columns=10000)
 
 
+def try_equations3():
+    a, b, c, d, y2, y3, x2, x3 = symbols("a b c d y2 y3 x2 x3")
+
+    x2_1 = y2 - b / (3 * a)
+    x3_1 = y3 - b / (3 * a)
+
+    expr = (a * x3 ** 4 + b * x3 ** 3 + c * x3 ** 2 + d * x3) - (a * x2 ** 4 + b * x2 ** 3 + c * x2 ** 2 + d * x2)
+    expr = expr.subs(x2, x2_1)
+    expr = expr.subs(x3, x3_1)
+
+    solution = solve(Eq(expr, 0), y2, dict=True)
+
+    for s in solution:
+        expr1 = s[y2]
+
+        t1, t2, t3, t4, t5, t6 = symbols("t1 t2 t3 t4 t5 t6")
+
+        t1_1 = 3 * a * y3 - b
+        t2_1 = 3 * a**2 * y3**2 - a * b * y3 + 3 * a * c - b**2
+
+        t3_1 = (27 * a**3 * y3**3 - 9 * a**2 * b * y3**2 + 27 * a**2 * c * y3 + 27 * a**2 * d - 9 * a * b**2 * y3 \
+               - 18 * a * b * c + 5 * b**3) / a**3
+
+        t4_1 = t1**2 / (9 * a**2) - t2 / a**2
+        t5_1 = sqrt(-4 * t4**3 + (t3 + 2 * t1**3 / (27 * a**3) - t1 * t2 / a**3)**2)
+        t6_1 = t3 / 2 + t5 / 2 + t1**3 / (27 * a**3) - t1 * t2 / (2 * a**3)
+
+        expr1 = expr1.subs(t1_1, t1)
+        expr1 = expr1.subs(t2_1, t2)
+        expr1 = expr1.subs(t3_1, t3)
+        expr1 = expr1.subs(t4_1, t4)
+        expr1 = expr1.subs(t5_1, t5)
+        expr1 = expr1.subs(t6_1, t6)
+
+        # pprint(expr1, use_unicode=false, num_columns=10000)
+
+        expr2 = y2 - expr1
+
+        alpha1, beta1 = symbols("alpha1 beta1")
+
+        y2_1 = -0.5 * (alpha1 + beta1) + 0.5 * sqrt(3) * 1j * (alpha1 - beta1)
+        y3_1 = -0.5 * (alpha1 + beta1) - 0.5 * sqrt(3) * 1j * (alpha1 - beta1)
+
+        # expr2 = expr2.subs(y2, y2_1)
+        # expr2 = expr2.subs(y3, y3_1)
+
+        print('#' * 100)
+
+        pprint(expr2, use_unicode=false, num_columns=10000)
+
+        t1_exp = t1_1.subs(y3, y3_1)
+        t2_exp = t2_1.subs(y3, y3_1)
+        t3_exp = t3_1.subs(y3, y3_1)
+        t4_exp = t4_1.subs(t1, t1_exp).subs(t2, t2_exp)
+        t5_exp = t5_1.subs(t1, t1_exp).subs(t2, t2_exp).subs(t3, t3_exp).subs(t4, t4_exp)
+        t6_exp = t6_1.subs(t1, t1_exp).subs(t2, t2_exp).subs(t3, t3_exp).subs(t5, t5_exp)
+
+        pprint(t1_exp, use_unicode=false, num_columns=10000)
+        pprint(t2_exp, use_unicode=false, num_columns=10000)
+        pprint(t3_exp, use_unicode=false, num_columns=10000)
+        pprint(t4_exp, use_unicode=false, num_columns=10000)
+        pprint(t5_exp, use_unicode=false, num_columns=10000)
+        pprint(t6_exp, use_unicode=false, num_columns=10000)
+
+
 def main():
     # cardano()
-    try_equations2()
+    # try_equations2()
+    try_equations3()
 
 
 if __name__ == '__main__':
