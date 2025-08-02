@@ -1,10 +1,12 @@
 import math
 import operator
 import time
+from collections import defaultdict
 from copy import deepcopy
 from math import sqrt
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy import var
 
 DEBUG = False
 # DEBUG = True
@@ -98,7 +100,8 @@ def qubic_equation_roots(coeffs):
         x = y - b / (3 * a)
         result.append(x)
 
-    return sorted(result)
+    # return sorted(result)
+    return result
 
 
 def polynome(coeffs, x):
@@ -411,6 +414,111 @@ def build_polynoms_with_one_same_extremum(coeffs):
     coeffs_full.clear()
 
 
+def get_roots_order_key(indexes):
+    result = 0
+
+    for index in range(3):
+        result += pow(indexes[index] + 1, 2 - index)
+
+    return result
+
+
+def define_extremums_and_values(coeffs):
+    first_derivative_coeffs = get_first_derivative_coeffs(coeffs)
+    extremums = qubic_equation_roots(first_derivative_coeffs)
+
+    result = []
+
+    for index in range(len(extremums)):
+        value = polynome(coeffs, extremums[index])
+        result.append([index, extremums[index], value])
+
+    sorted(result, key=operator.itemgetter(0))
+    indexes = [i[0] for i in result]
+
+
+def get_extremum_value_distribution():
+    root_number_distribution = defaultdict(int)
+    distribution = defaultdict(int)
+
+    coeffs_full = []
+
+    for a in range(-20, 0, 1):
+        if a == 0:
+            continue
+
+        for b in range(-10, 10, 1):
+            for c in range(-10, 10, 1):
+
+                d = b * c / a
+                # for d in range(-10, 10, 1):
+                coeffs = [a, b, c, d]
+                # print(coeffs)
+
+                first_derivative_coeffs = get_first_derivative_coeffs(coeffs)
+                # extremums = qubic_equation_roots(first_derivative_coeffs)
+
+                # Cardano's formula
+                p = get_cardano_coeff_p(first_derivative_coeffs)
+                q = get_cardano_coeff_q(first_derivative_coeffs)
+                print_custom('p:', p, 'q:', q)
+
+                Q = get_cardano_coeff_Q(p, q)
+                print_custom("Q:", Q)
+
+                if Q > 0:
+                    root_number_distribution[1] += 1
+                elif Q == 0:
+                    root_number_distribution[2] += 1
+                elif Q < 0:
+                    root_number_distribution[3] += 1
+
+                    coeffs_full.append(coeffs)
+
+                    alpha = pow((-0.5 * q + np.emath.sqrt(Q)), 1 / 3)
+                    beta = pow((-0.5 * q - np.emath.sqrt(Q)), 1 / 3)
+
+                    y_1 = alpha + beta
+                    y_2 = -0.5 * (alpha + beta) + np.emath.sqrt(-1) * 0.5 * (alpha - beta) * sqrt(3)
+                    y_3 = -0.5 * (alpha + beta) - np.emath.sqrt(-1) * 0.5 * (alpha - beta) * sqrt(3)
+
+                    extremums = [y_1, y_2, y_3]
+
+                    result = []
+
+                    for index in range(len(extremums)):
+                        value = polynome(coeffs, extremums[index])
+                        result.append([index, extremums[index], value])
+
+                    # print(result)
+                    result = sorted(result, key=operator.itemgetter(2))
+                    # print(result)
+
+                    indexes = [i[0] for i in result]
+
+                    key = get_roots_order_key(indexes)
+                    # print(key, indexes)
+
+                    distribution[key] += 1
+                    # print(coeffs, key, indexes, result, distribution)
+                    # print(coeffs, key, indexes, result, distribution)
+
+    print(root_number_distribution)
+    print(distribution)
+
+    coeffs_group = []
+
+    for i in range(len(coeffs_full)):
+        if not coeffs_full[i][0] == -14:
+            continue
+
+        coeffs_group.append(coeffs_full[i])
+
+        if len(coeffs_group) == 50:
+            build_graph_group(coeffs_group, 0.01, 0.001, polynome)
+            coeffs_group.clear()
+
+
 def main():
     coeffs_1 = [-1, -3, 1, 6, 0]
 
@@ -446,25 +554,30 @@ def main():
 
     #############################################################################################
 
-    coeffs_full = [deepcopy(coeffs_1)]
-
-    rate = 0.5
-    step = 0.1
-
-    for k in range(0, 5, 1):
-        base = rate - k * step
-        print("base:", base)
-        coeffs = [coeffs_1[i] * pow(base, 4 - i) for i in range(len(coeffs_1))]
-
-        coeffs_full.append(coeffs)
-        coeffs_full.append(get_complementary_polynom_coeffs(coeffs))
-        # build_coeff_visualization_group([coeffs, get_complementary_polynom_coeffs(coeffs)])
-
-    build_graph_group(coeffs_full, 0.1, 0.001, polynome)
+    # coeffs_full = [deepcopy(coeffs_1)]
+    #
+    # rate = 0.5
+    # step = 0.1
+    #
+    # for k in range(0, 5, 1):
+    #     base = rate - k * step
+    #     print("base:", base)
+    #     coeffs = [coeffs_1[i] * pow(base, 4 - i) for i in range(len(coeffs_1))]
+    #
+    #     coeffs_full.append(coeffs)
+    #     coeffs_full.append(get_complementary_polynom_coeffs(coeffs))
+    #     # build_coeff_visualization_group([coeffs, get_complementary_polynom_coeffs(coeffs)])
+    #
+    # build_graph_group(coeffs_full, 0.1, 0.001, polynome)
 
     #############################################################################################
 
     # build_polynoms_with_one_same_extremum(coeffs_1)
+
+    #############################################################################################
+
+    # define_extremums_and_values(coeffs_1)
+    get_extremum_value_distribution()
 
 
 if __name__ == '__main__':
