@@ -5,6 +5,7 @@ from collections import defaultdict
 from copy import deepcopy
 from math import sqrt
 import matplotlib.pyplot as plt
+import numpy
 import numpy as np
 from numpy import var
 
@@ -72,7 +73,7 @@ def get_cardano_coeff_Q(p, q):
     return pow(p/3, 3) + pow(q/2, 2)
 
 
-def qubic_equation_roots(coeffs):
+def сubic_equation_roots(coeffs):
     a = coeffs[0]
     b = coeffs[1]
     c = coeffs[2]
@@ -166,7 +167,7 @@ def get_second_derivative_coeffs(coeffs):
 
 
 def get_extremums(coeffs):
-    extremums = qubic_equation_roots(get_first_derivative_coeffs(coeffs))
+    extremums = сubic_equation_roots(get_first_derivative_coeffs(coeffs))
     print_custom("extremums:", extremums)
 
     return extremums
@@ -425,7 +426,7 @@ def get_roots_order_key(indexes):
 
 def define_extremums_and_values(coeffs):
     first_derivative_coeffs = get_first_derivative_coeffs(coeffs)
-    extremums = qubic_equation_roots(first_derivative_coeffs)
+    extremums = сubic_equation_roots(first_derivative_coeffs)
 
     result = []
 
@@ -482,7 +483,14 @@ def get_extremum_value_distribution():
                     y_2 = -0.5 * (alpha + beta) + np.emath.sqrt(-1) * 0.5 * (alpha - beta) * sqrt(3)
                     y_3 = -0.5 * (alpha + beta) - np.emath.sqrt(-1) * 0.5 * (alpha - beta) * sqrt(3)
 
-                    extremums = [y_1, y_2, y_3]
+                    extremums = []
+
+                    a3 = first_derivative_coeffs[0]
+                    b3 = first_derivative_coeffs[1]
+
+                    for y in [y_1, y_2, y_3]:
+                        x = y - b3 / (3 * a3)
+                        extremums.append(x)
 
                     result = []
 
@@ -517,6 +525,157 @@ def get_extremum_value_distribution():
         if len(coeffs_group) == 50:
             build_graph_group(coeffs_group, 0.01, 0.001, polynome)
             coeffs_group.clear()
+
+
+def get_nonlinear_equation_system_solution(coeffs):
+    """Get soolution of system
+
+        a1 * x1 + b1 * x2 + c1 * x1 * x2 = y1
+        a2 * x1 + b2 * x2 + c2 * x1 * x2 = y2
+
+        coeffs: [[a1, b1, c1, y1], [a2, b2, c2, y2]]
+    """
+    a1, b1, c1, y1 = coeffs[0]
+    a2, b2, c2, y2 = coeffs[1]
+
+    n = (c1 * a2 - c2 * a1)
+    p = (c1 * y2 - c2 * y1) / n
+    q = (c2 * b1 - c1 * b2) / n
+
+    x2 = quadratic_equation_roots([c1 * q, a1 * q + b1 + c1 * p, a1 * p - y1])
+    result = [[p + q * x, x] for x in x2]
+
+    return result
+
+
+def get_complementary_polynom_coeffs_by_known_points(coeffs):
+    first_derivative_coeffs = get_first_derivative_coeffs(coeffs)
+    # extremums = qubic_equation_roots(first_derivative_coeffs)
+
+    # Cardano's formula
+    p = get_cardano_coeff_p(first_derivative_coeffs)
+    q = get_cardano_coeff_q(first_derivative_coeffs)
+    print_custom('p:', p, 'q:', q)
+
+    Q = get_cardano_coeff_Q(p, q)
+    print_custom("Q:", Q)
+
+    if Q > 0:
+        print("Q > 0")
+    elif Q == 0:
+        print("Q == 0")
+    elif Q < 0:
+        print("Q < 0")
+
+        alpha = pow((-0.5 * q + np.emath.sqrt(Q)), 1 / 3)
+        beta = pow((-0.5 * q - np.emath.sqrt(Q)), 1 / 3)
+
+        y_1 = alpha + beta
+        y_2 = -0.5 * (alpha + beta) + np.emath.sqrt(-1) * 0.5 * (alpha - beta) * sqrt(3)
+        y_3 = -0.5 * (alpha + beta) - np.emath.sqrt(-1) * 0.5 * (alpha - beta) * sqrt(3)
+
+        extremums = []
+
+        a3 = first_derivative_coeffs[0]
+        b3 = first_derivative_coeffs[1]
+
+        for y in [y_1, y_2, y_3]:
+            x = y - b3 / (3 * a3)
+            extremums.append(x)
+
+        result = []
+
+        for index in range(len(extremums)):
+            value = polynome(coeffs, extremums[index])
+            result.append([index, extremums[index], value])
+
+        # print(result)
+        result = sorted(result, key=operator.itemgetter(1))
+        print(result)
+
+        if not result[1][2] < result[0][2] and result[1][2] < result[2][2]:
+            print("Minimum is not in the middle")
+        else:
+            addition_y = 0
+            maximums_delta_x = result[2][1] - result[0][1]
+            maximums_delta_y = abs(result[2][2] - result[0][2])
+
+            min_of_maximums_y_result_item = min([result[0], result[2]], key=operator.itemgetter(2))
+            min_of_maximums_y = min_of_maximums_y_result_item[2]
+            min_of_maximums_x = min_of_maximums_y_result_item[1]
+            print("min_of_maximums_x", min_of_maximums_x)
+            print("min_of_maximums_y", min_of_maximums_y)
+
+            # points
+            x1 = result[0][1]  # first max
+            y1 = polynome(coeffs, x1) + addition_y
+
+            x2 = result[2][1]  # second max
+            y2 = polynome(coeffs, x2) + addition_y
+
+            # x3 = result[1][1]  # min
+            # y3_lin = min_of_maximums_y + abs(x3 - min_of_maximums_x) * maximums_delta_y / maximums_delta_x
+
+            # coeff = 0.1
+            # y3 = y3_lin + (min_of_maximums_y + maximums_delta_y - y3_lin) * coeff
+
+            # x4 = min_of_maximums_x - 0.1 * maximums_delta_x  # 4th point
+            # y4 = polynome(coeffs, x4) + addition_y
+
+            print(x1, y1)
+            print(x2, y2)
+            # print(x3, y3)
+            # print(x4, y4)
+
+            # matrix_a = np.array([
+            #     [x1**4, x1**3, x1**2, x1**1],
+            #     [x2**4, x2**3, x2**2, x2**1],
+            #     [x3**4, x3**3, x3**2, x3**1],
+            #     [x4**4, x4**3, x4**2, x4**1]
+            # ])
+            # matrix_a = np.array([
+            #     [x1**3, x1**2, x1**1],
+            #     [x2**3, x2**2, x2**1],
+            #     [x3**3, x3**2, x3**1]
+            # ])
+            #
+            # vector_y = np.array([y1 - coeffs[0] * x1**4, y2 - coeffs[0] * x2**4, y3 - coeffs[0] * x3**4])
+            #
+            # x = numpy.linalg.solve(matrix_a, vector_y)
+
+            coeffs_system = [
+                [x1**3, x1**2, x1**1 / coeffs[0], y1 - coeffs[0] * x1**4],
+                [x2**3, x2**2, x2**1 / coeffs[0], y2 - coeffs[0] * x2**4],
+            ]
+
+            solution = get_nonlinear_equation_system_solution(coeffs_system)
+
+            print(solution)
+            coeffs_group = [coeffs]
+
+            for s in solution:
+                print(x1, polynome(s, x1))
+                print(x2, polynome(s, x2))
+
+                new_coeffs = [
+                    coeffs[0], s[0], s[1], s[0] * s[1] / coeffs[0]
+                ]
+                coeffs_group.append(new_coeffs)
+
+                print(y1 / polynome(new_coeffs, x1))
+                print(y2 / polynome(new_coeffs, x2))
+
+            print(coeffs_group)
+            build_graph_group(coeffs_group, 0.01, 0.001, polynome)
+
+        # indexes = [i[0] for i in result]
+
+        # key = get_roots_order_key(indexes)
+        # print(key, indexes)
+
+        # distribution[key] += 1
+        # print(coeffs, key, indexes, result, distribution)
+        # print(coeffs, key, indexes, result, distribution)
 
 
 def main():
@@ -577,7 +736,8 @@ def main():
     #############################################################################################
 
     # define_extremums_and_values(coeffs_1)
-    get_extremum_value_distribution()
+    # get_extremum_value_distribution()
+    get_complementary_polynom_coeffs_by_known_points(coeffs_1)
 
 
 if __name__ == '__main__':
