@@ -73,7 +73,7 @@ def get_cardano_coeff_Q(p, q):
     return pow(p/3, 3) + pow(q/2, 2)
 
 
-def сubic_equation_roots(coeffs):
+def cubic_equation_roots(coeffs):
     a = coeffs[0]
     b = coeffs[1]
     c = coeffs[2]
@@ -167,7 +167,7 @@ def get_second_derivative_coeffs(coeffs):
 
 
 def get_extremums(coeffs):
-    extremums = сubic_equation_roots(get_first_derivative_coeffs(coeffs))
+    extremums = cubic_equation_roots(get_first_derivative_coeffs(coeffs))
     print_custom("extremums:", extremums)
 
     return extremums
@@ -318,7 +318,7 @@ def get_d_interval(a, b, c):
         return [d1, d2]
 
 
-def get_complementary_polynom_coeffs(coeffs):
+def get_supplemented_polynom_coeffs(coeffs):
     # for i in range(-10, 10, 1):
     #     coeffs[0] = i
     #
@@ -353,6 +353,52 @@ def get_complementary_polynom_coeffs(coeffs):
     # build_graph_group(coeffs_full, 0.1, 0.001, polynome)
 
     return coeffs_3
+
+
+def search_for_polynoms_with_3_extremums():
+    # search for polynoms with 3 extremums
+    for a in range(-2, -1, 1):
+        b = 0
+        # for b in range(-5, -1, 1):
+        aa = -27 * pow(a, 6)
+        bb = 27 * pow(a, 2) * pow(b, 2)
+        cc = 0
+        dd = pow(b, 6) - pow(b, 2)
+
+        c_zeros = cubic_equation_roots(deepcopy([aa, bb, cc, dd]))
+        print(c_zeros)
+
+        for c in range(1, 5, 1):
+            if get_d_interval(a, b, c):
+                [d1, d2] = get_d_interval(a, b, c)
+                print(a, b, c, d1, d2)
+
+                for d in range(math.ceil(d1), math.floor(d2), 1):
+                    get_supplemented_polynom_coeffs(deepcopy([a, b, c, d]))
+
+
+def build_coeff_visualization(coeffs):
+    coeffs_full = [coeffs]
+    coeffs_full.append(get_supplemented_polynom_coeffs(coeffs))
+    build_coeff_visualization_group(coeffs_full)
+
+
+def build_base_and_supplemented_polynoms(coeffs):
+    coeffs_full = [coeffs]
+
+    rate = 0.5
+    step = 0.1
+
+    for k in range(0, 5, 1):
+        base = rate - k * step
+        print("base:", base)
+        new_coeffs = [coeffs[i] * pow(base, 4 - i) for i in range(len(coeffs))]
+
+        coeffs_full.append(new_coeffs)
+        coeffs_full.append(get_supplemented_polynom_coeffs(new_coeffs))
+        build_coeff_visualization_group([new_coeffs, get_supplemented_polynom_coeffs(new_coeffs)])
+
+    build_graph_group(coeffs_full, 0.1, 0.001, polynome)
 
 
 def build_polynoms_with_one_same_extremum(coeffs):
@@ -426,7 +472,7 @@ def get_roots_order_key(indexes):
 
 def define_extremums_and_values(coeffs):
     first_derivative_coeffs = get_first_derivative_coeffs(coeffs)
-    extremums = сubic_equation_roots(first_derivative_coeffs)
+    extremums = cubic_equation_roots(first_derivative_coeffs)
 
     result = []
 
@@ -528,7 +574,7 @@ def get_extremum_value_distribution():
 
 
 def get_nonlinear_equation_system_solution(coeffs):
-    """Get soolution of system
+    """Get solution of system
 
         a1 * x1 + b1 * x2 + c1 * x1 * x2 = y1
         a2 * x1 + b2 * x2 + c2 * x1 * x2 = y2
@@ -548,7 +594,7 @@ def get_nonlinear_equation_system_solution(coeffs):
     return result
 
 
-def get_complementary_polynom_coeffs_by_known_points(coeffs):
+def get_supplemented_polynom_coeffs_by_known_points(coeffs):
     first_derivative_coeffs = get_first_derivative_coeffs(coeffs)
     # extremums = qubic_equation_roots(first_derivative_coeffs)
 
@@ -678,66 +724,60 @@ def get_complementary_polynom_coeffs_by_known_points(coeffs):
         # print(coeffs, key, indexes, result, distribution)
 
 
+def find_supplemented_polynom_coeffs_using_equality_of_extremums(coeffs):
+    """
+    Biggest extremum of base polynom is equal to supplemented polynom extremum.
+
+    alpha1 + beta1 - b1 / (3 * a1) = -b2 / (3 * a2)
+    """
+    first_derivative_coeffs = get_first_derivative_coeffs(coeffs)
+    p = get_cardano_coeff_p(first_derivative_coeffs)
+    q = get_cardano_coeff_q(first_derivative_coeffs)
+    print_custom('p:', p, 'q:', q)
+
+    Q = get_cardano_coeff_Q(p, q)
+    print_custom("Q:", Q)
+
+    if Q > 0:
+        print("Q > 0")
+    elif Q == 0:
+        print("Q == 0")
+    elif Q < 0:
+        print("Q < 0")
+
+        alpha1 = pow((-0.5 * q + np.emath.sqrt(Q)), 1 / 3)
+        beta1 = pow((-0.5 * q - np.emath.sqrt(Q)), 1 / 3)
+
+        a1 = coeffs[0]
+        b1 = coeffs[1]
+
+        a2 = a1
+        b2 = 3 * a2 * (b1 / (3 * a1) - alpha1 - beta1)
+        c2 = 9 * b2**2 / (32 * a2)
+        d2 = (4 * a2 * b2 * c2 - b2**3) / (8 * a2**2)
+
+        new_coeffs = [a2, b2, c2, d2]
+
+        print(cubic_equation_roots(first_derivative_coeffs))
+        print(cubic_equation_roots(get_first_derivative_coeffs(new_coeffs)))
+
+        build_graph_group([coeffs, new_coeffs], 0.01, 0.001, polynome)
+
+
 def main():
     coeffs_1 = [-1, -3, 1, 6, 0]
 
     # play_with_coeffs(coeffs_1)
     # fix_and_search_coeffs(coeffs_1)
-    # get_complementary_polynom_coeffs(coeffs_1)
-
-    # search for polynoms with 3 extremums
-    # for a in range(-2, -1, 1):
-    #     b = 0
-    #     # for b in range(-5, -1, 1):
-    #     aa = -27 * pow(a, 6)
-    #     bb = 27 * pow(a, 2) * pow(b, 2)
-    #     cc = 0
-    #     dd = pow(b, 6) - pow(b, 2)
-    #
-    #     c_zeros = qubic_equation_roots(deepcopy([aa, bb, cc, dd]))
-    #     print(c_zeros)
-    #
-    #     # for c in range(1, 5, 1):
-    #     #     if get_d_interval(a, b, c):
-    #     #         [d1, d2] = get_d_interval(a, b, c)
-    #     #         print(a, b, c, d1, d2)
-    #
-    #         # for d in range(math.ceil(d1), math.floor(d2), 1):
-    #         #     get_complementary_polynom(deepcopy([a, b, c, d]))
-
-    #############################################################################################
-
-    # coeffs_full = [deepcopy(coeffs_1)]
-    # coeffs_full.append(get_complementary_polynom_coeffs(coeffs_1))
-    # build_coeff_visualization_group(coeffs_full)
-
-    #############################################################################################
-
-    # coeffs_full = [deepcopy(coeffs_1)]
-    #
-    # rate = 0.5
-    # step = 0.1
-    #
-    # for k in range(0, 5, 1):
-    #     base = rate - k * step
-    #     print("base:", base)
-    #     coeffs = [coeffs_1[i] * pow(base, 4 - i) for i in range(len(coeffs_1))]
-    #
-    #     coeffs_full.append(coeffs)
-    #     coeffs_full.append(get_complementary_polynom_coeffs(coeffs))
-    #     # build_coeff_visualization_group([coeffs, get_complementary_polynom_coeffs(coeffs)])
-    #
-    # build_graph_group(coeffs_full, 0.1, 0.001, polynome)
-
-    #############################################################################################
-
+    # get_supplemented_polynom_coeffs(coeffs_1)
+    # search_for_polynoms_with_3_extremums()
+    # build_coeff_visualization(coeffs_1)
+    # build_base_and_supplemented_polynoms(coeffs_1)
     # build_polynoms_with_one_same_extremum(coeffs_1)
-
-    #############################################################################################
-
     # define_extremums_and_values(coeffs_1)
     # get_extremum_value_distribution()
-    get_complementary_polynom_coeffs_by_known_points(coeffs_1)
+    # get_supplemented_polynom_coeffs_by_known_points(coeffs_1)
+    # find_supplemented_polynom_coeffs_using_equality_of_extremums(coeffs_1)
 
 
 if __name__ == '__main__':
